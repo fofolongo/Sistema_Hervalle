@@ -39,28 +39,31 @@
     }
 
     function initMic() {
-      mic = new p5.AudioIn();
-      mic.start(startFFT);
+      userStartAudio().then(() => {
+        mic = new p5.AudioIn();
+        mic.start(startFFT);
+      });
     }
+
 
     function startFFT() {
       fft.setInput(mic);
       audioStarted = true;
     }
 
-    function loadAudioFile() {
-      if (mic) {
-        mic.stop();
-      }
-      const file = document.getElementById("audioFile").files[0];
-      const objectURL = URL.createObjectURL(file);
-      let audioEl = new Audio(objectURL);
-      audioEl.oncanplaythrough = (event) => {
-        fft.setInput(audioEl);
-        audioStarted = true;
-        audioEl.play();
-      };
-    }
+function loadAudioFile() {
+  if (mic) {
+    mic.stop();
+  }
+  const file = document.getElementById("audioFile").files[0];
+  const objectURL = URL.createObjectURL(file);
+  let audioEl = new p5.SoundFile(objectURL, () => {
+    fft.setInput(audioEl);
+    audioStarted = true;
+    audioEl.play();
+  });
+}
+
   </script>
 </body>
 </html>
