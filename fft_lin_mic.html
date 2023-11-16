@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+  <div id="canvasContainer"></div>
+  <input type="file" id="audioFile" accept="audio/*">
+  <button onclick="initMic()">Start Mic</button>
+
+  <script>
+    let mic;
+    let fft;
+    let audioStarted = false;
+
+    function setup() {
+      let cnv = createCanvas(400, 400);
+      cnv.parent("canvasContainer");
+      background(200);
+      fft = new p5.FFT();
+
+      let fileInput = select('#audioFile');
+      fileInput.input(loadAudioFile);
+    }
+
+    function draw() {
+      if (!audioStarted || !fft) return;
+
+      background(200);
+      let spectrum = fft.analyze();
+
+      for (let i = 0; i < spectrum.length; i++) {
+        let x = map(i, 0, spectrum.length, 0, width);
+        let h = -height + map(spectrum[i], 0, 255, height, 0);
+        fill(i, 255, 255);
+        rect(x, height, width / spectrum.length, h);
+      }
+    }
+
+    function initMic() {
+      mic = new p5.AudioIn();
+      mic.start(startFFT);
+    }
+
+    function startFFT() {
+      fft.setInput(mic);
+      audioStarted = true;
+    }
+
+    function loadAudioFile() {
+      if (mic) {
+        mic.stop();
+      }
+      const file = document.getElementById("audioFile").files[0];
+      const objectURL = URL.createObjectURL(file);
+      let audioEl = new Audio(objectURL);
+      audioEl.oncanplaythrough = (event) => {
+        fft.setInput(audioEl);
+        audioStarted = true;
+        audioEl.play();
+      };
+    }
+  </script>
+</body>
+</html>
